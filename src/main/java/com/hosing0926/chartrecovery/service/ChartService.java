@@ -84,4 +84,12 @@ public class ChartService {
             return false;
         }
     }
+
+    public List<Chart> getChart(String symbol, String interval, Long startTime, Long endTime) {
+        Criteria criteria = Criteria.where("startTime").gte(startTime)
+                .andOperator(Criteria.where("endTime").lt(endTime));
+        Query query = new Query(criteria);
+
+        return mongoTemplate.find(query, Chart.class, String.format(Constant.CHART_COLLECTION_NAME, symbol, interval));
+    }
 }
