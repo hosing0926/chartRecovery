@@ -7,7 +7,7 @@ public class RecoveryChartRequest {
 
     private String symbol;
 
-    private String startTime;
+    private Long startTime;
 
-    private String endTime;
+    private Long endTime;
 }

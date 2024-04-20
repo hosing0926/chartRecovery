@@ -13,5 +13,14 @@ public class Constant {
                     "1w", "1M"
             );
 
-    public static String CHART_COLLECTION_NAME = "chart_{%s}_{%s}";
+    public static List<Long> INTERVAL_WIGHT = Arrays.asList
+            (
+                    60000L, 180000L, 300000L, 600000L, 900000L, 1800000L,
+                    3600000L, 7200000L, 14400000L, 21600000L,
+                    28800000L, 43200000L,
+                    86400000L, 259200000L,
+                    604800000L, 2629800000L
+            );
+
+    public static String CHART_COLLECTION_NAME = "chart_%s_%s";
 }
