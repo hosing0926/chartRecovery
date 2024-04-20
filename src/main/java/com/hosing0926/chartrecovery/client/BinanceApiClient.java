@@ -10,7 +10,7 @@ import java.util.List;
 public interface BinanceApiClient {
 
     @GetMapping("/v3/klines")
-    List<Object> getCharts(
+    List<Object[]> getCharts(
             @RequestParam String symbol,
             @RequestParam String interval,
             @RequestParam Long startTime,

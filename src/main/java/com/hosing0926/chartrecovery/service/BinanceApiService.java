@@ -2,12 +2,14 @@ package com.hosing0926.chartrecovery.service;
 
 import com.hosing0926.chartrecovery.client.BinanceApiClient;
 import com.hosing0926.chartrecovery.entity.mongo.Chart;
+import com.hosing0926.chartrecovery.entity.mysql.Symbol;
 import com.hosing0926.chartrecovery.exception.ApiException;
 import com.hosing0926.chartrecovery.exception.Error;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -20,38 +22,40 @@ public class BinanceApiService {
 
     private final BinanceApiClient client;
 
-    public List<Chart> getChart(String symbol, String interval, Long strStringTime, Long endStringTime) {
+    public List<Chart> getChart(String symbol, String interval, Long startTime, Long endTime) {
         try {
             List<Chart> charts = new ArrayList<>();
 
-            if (endStringTime == null) {
-                endStringTime = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) * 1000;
+            if (endTime == null) {
+                endTime = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) * 1000;
             }
 
-            //TODO chart data mapping
-// [
-//  [
-//            1499040000000,      // Kline open time
-//            "0.01634790",       // Open price
-//            "0.80000000",       // High price
-//            "0.01575800",       // Low price
-//            "0.01577100",       // Close price
-//            "148976.11427815",  // Volume
-//            1499644799999,      // Kline Close time
-//            "2434.19055334",    // Quote asset volume
-//            308,                // Number of trades
-//            "1756.87402397",    // Taker buy base asset volume
-//            "28.46694368",      // Taker buy quote asset volume
-//            "0"                 // Unused field, ignore.
-//  ]
-//]
-//
-            List<Object> binanceCharts = client.getCharts(symbol, interval, strStringTime, endStringTime, 1000);
-            for (Object binanceChart : binanceCharts) {
+            List<Object[]> chartDatas = new ArrayList<>();
+            List<Object[]> binanceCharts = client.getCharts(symbol, interval, startTime, endTime, 1000);
+            chartDatas.addAll(binanceCharts);
+
+            while (binanceCharts.size() >= 1000) {
+                Object[] chart = binanceCharts.get(binanceCharts.size() - 1);
+                startTime = (Long) chart[6] + 1;
+                System.out.println(startTime);
+                binanceCharts = client.getCharts(symbol, interval, startTime, endTime, 1000);
+                chartDatas.addAll(binanceCharts);
+            }
+
+            for (Object[] chartData : chartDatas) {
                 Chart chart = Chart.builder()
                         .symbol(symbol)
                         .interval(interval)
+                        .openPrice(new BigDecimal((String) chartData[1]))
+                        .highPrice(new BigDecimal((String) chartData[2]))
+                        .lowPrice(new BigDecimal((String) chartData[3]))
+                        .closePrice(new BigDecimal((String) chartData[4]))
+                        .volume(new BigDecimal((String) chartData[5]))
+                        .startTime((Long) chartData[0])
+                        .endTime((Long) chartData[6])
                         .build();
+
+                charts.add(chart);
             }
 
             return charts;
