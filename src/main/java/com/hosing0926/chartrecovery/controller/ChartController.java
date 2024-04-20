@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RequiredArgsConstructor
-@RestController("/chart")
+@RequestMapping("/chart")
+@RestController
 public class ChartController {
 
     private final ChartService chartService;
@@ -21,21 +22,28 @@ public class ChartController {
             @RequestParam Long startTime, @RequestParam Long endTime)
     {
         List<Chart> charts = chartService.getChart(symbol, interval, startTime, endTime);
-
         return ApiResponse.builder().data(charts).build();
     }
 
     @PostMapping("/recovery")
     public ApiResponse recoveryChartBySymbol(@RequestBody RecoveryChartRequest request) {
-        String response = chartService.recoveryChartBySymbol(request);
+        String response = chartService.recoveryChartBySymbol(request.getSymbol(), request.getStartTime(), request.getEndTime());
 
         return ApiResponse.builder().data(response).build();
     }
 
     @PostMapping("/recovery/all")
     public ApiResponse recoveryChartAllSymbol(@RequestBody RecoveryChartRequest request) {
-        String response = chartService.recoveryChartAllSymbol(request);
+        String response = chartService.recoveryChartAllSymbol(request.getStartTime(), request.getEndTime());
 
         return ApiResponse.builder().data(response).build();
+    }
+
+    @DeleteMapping("/reset")
+    public ApiResponse resetChart()
+    {
+        boolean resetChart = chartService.resetChart();
+
+        return ApiResponse.builder().data(resetChart).build();
     }
 }
